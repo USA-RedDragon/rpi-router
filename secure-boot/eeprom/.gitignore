@@ -1,0 +1,3 @@
+*.sig
+*.bin
+!pieeprom.original.bin
