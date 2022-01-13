@@ -1,3 +1,8 @@
 [submodule "rpi-usbboot"]
 	path = rpi-usbboot
 	url = https://github.com/raspberrypi/usbboot
+[submodule "boot-image_firmware"]
+	path = boot-image/firmware
+	url = https://github.com/raspberrypi/firmware
+	branch = stable
+        shallow = true
