@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -n "$DEBUG" ]; then
+    DEBUG=-debug
+fi
+
 press_to_continue() {
   echo
   echo "${1}"
@@ -18,4 +22,4 @@ make -C ../../rpi-usbboot/ >/dev/null
 
 # Set nRPIBOOT jumper and remove EEPROM WP protection
 press_to_continue "Power off the Pi, set nRPIBOOT, and remove EEPROM Write Protection"
-../../rpi-usbboot/rpiboot -d .
+../../rpi-usbboot/rpiboot -d out${DEBUG}.rpiboot

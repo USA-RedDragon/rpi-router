@@ -1,3 +1,4 @@
 *.sig
 *.bin
+*.rpiboot/
 !pieeprom.original.bin
