@@ -1,0 +1,7 @@
+*.img
+*.sig
+bootfs/
+.boot-mount
+boot-mount/
+ramdisk-mount/
+tmp.*

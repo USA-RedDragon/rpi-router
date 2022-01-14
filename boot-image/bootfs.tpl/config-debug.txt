@@ -1,0 +1,9 @@
+boot_ramdisk=1
+enable_uart=1
+uart_2ndstage=1
+
+eeprom_write_protect=0
+
+disable_poe_fan=1
+disable_splash=0
+force_eeprom_read=0

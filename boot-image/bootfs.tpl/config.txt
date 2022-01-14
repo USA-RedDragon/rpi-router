@@ -1,0 +1,12 @@
+boot_ramdisk=1
+
+eeprom_write_protect=1
+
+disable_splash=1
+gpu_mem=16
+
+dtoverlay=disable-bt
+
+disable_poe_fan=1
+disable_splash=0
+force_eeprom_read=0
