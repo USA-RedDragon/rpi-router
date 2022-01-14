@@ -5,4 +5,9 @@
 	path = boot-image/firmware
 	url = https://github.com/raspberrypi/firmware
 	branch = stable
-        shallow = true
+	shallow = true
+[submodule "boot-image_linux"]
+	path = boot-image/linux
+	url = https://github.com/USA-RedDragon/linux
+	branch = rpi-router
+	shallow = true
