@@ -2,7 +2,7 @@
 
 A POC router OS for RPI CM4 + The DFRobot Router Board
 
-This is a POC, but a predecessor of this appliance has been running in my network for about a year.
+This is a POC, but a predecessor of this appliance has been running in my network for about a year. <https://github.com/USA-RedDragon/charch>
 
 ## Objectives
 
@@ -17,6 +17,7 @@ This is a POC, but a predecessor of this appliance has been running in my networ
 - Provide a recursive DNS resolver with caching and ad blocking via AdGuard Home.
 - Make IPv6 support a first-class citizen.
 - Provide a backup mechanism.
+- Dynamic Firewall (for NAT reflection) <https://github.com/USA-RedDragon/redwall>
 
 ## Technology in this repo
 
