@@ -11,3 +11,7 @@
 	url = https://github.com/USA-RedDragon/linux
 	branch = rpi-router
 	shallow = true
+[submodule "busybox"]
+	path = busybox
+	url = https://git.busybox.net/busybox/
+	branch = refs/tags/1_35_0
