@@ -46,6 +46,11 @@ sudo mkdir -p ramdisk-mount
 sudo mount ${LOOP} ramdisk-mount/
 
 # TODO: Place files
+sudo cp -Rv ramdisk-image/* ramdisk-mount/
+cp busybox-config ../busybox/.config
+make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- busybox
+sudo make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- CONFIG_PREFIX="$(pwd)/ramdisk-mount/" install
+sudo chown -R root:root ramdisk-mount/
 
 sudo umount ramdisk-mount
 sudo rm -rf ramdisk-mount
