@@ -10,7 +10,7 @@ DEFCONFIG="rpi_cm4_io_router_defconfig"
 KERNEL="Image.gz"
 INITRAMFS="initramfs.xz"
 # TODO: cmdline.txt generation
-CMDLINE="console=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait"
+CMDLINE="earlycon=pl011,mmio32,0xfe201000 console=ttyS0,115200 root=LABEL=SYSTEM rootfstype=ext4 rootwait"
 
 # Create and copy kernel
 make -C ./linux ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- ${DEFCONFIG}
