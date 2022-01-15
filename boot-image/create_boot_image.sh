@@ -31,6 +31,7 @@ cp -v ../boot-image/firmware/boot/overlays/README bootfs/overlays/
 
 TMPFILE=$(mktemp tmp.XXXXX)
 env KERNEL=${KERNEL} INITRAMFS=${INITRAMFS} CMDLINE="${CMDLINE}" envsubst < bootfs.tpl/config-kernel.txt.tpl > ${TMPFILE}
+echo "${CMDLINE}" > bootfs/cmdline.txt
 cat bootfs.tpl/config${DEBUG}.txt ${TMPFILE} > bootfs/config.txt
 rm -f ${TMPFILE}
 
