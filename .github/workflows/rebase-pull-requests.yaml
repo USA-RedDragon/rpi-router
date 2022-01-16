@@ -1,0 +1,14 @@
+name: 'Rebase pull requests on update'
+
+on:
+  push:
+    branches: '**'
+
+jobs:
+  rebase:
+    name: 'Rebase pull requests'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Rebase pull requests
+      uses: linhbn123/rebase-pull-requests@v1.0.1
