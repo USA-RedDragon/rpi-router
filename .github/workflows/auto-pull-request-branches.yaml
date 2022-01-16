@@ -1,0 +1,30 @@
+name: 'Automatic pull request from automerge/ branches'
+
+on:
+  push:
+    branches:
+    - automerge/*
+
+jobs:
+  pr:
+    name: 'Create pull request'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Create PR against main for push to automerge/*
+      uses: vsoch/pull-request-action@1.0.18
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH_PREFIX: "automerge/"
+        PULL_REQUEST_BRANCH: "main"
+        PULL_REQUEST_TITLE: "Automatic automerge update"
+        PASS_IF_EXISTS: true
+        PULL_REQUEST_UPDATE: true
+    - name: Notify build and test pipeline
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        PARENT_BRANCH: main
+        # Obtained via curl -X GET -H "Authorization: token $PAT" https://api.github.com/repos/$PARENT_REPO/actions/workflows
+        WORKFLOW_ID: '18042938'
+      run: |
+        curl -fL --retry 3 -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ env.GITHUB_TOKEN }}" https://api.github.com/repos/${{ env.GITHUB_REPOSITORY }}/actions/workflows/${{ env.WORKFLOW_ID }}/dispatches -d '{"ref":"${{ env.PARENT_BRANCH }}"}'
