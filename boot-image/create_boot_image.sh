@@ -19,9 +19,9 @@ else
 fi
 
 # Create and copy kernel
-make -C ./linux ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- ${DEFCONFIG}
-make -C ./linux ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc) ${KERNEL} modules dtbs
-make -C ./linux ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_MOD_PATH=$(pwd)/bootfs MODULES_NO_SYMLINK=true modules_install
+KBUILD_BUILD_TIMESTAMP='' make -C ./linux ARCH=arm64 CC="ccache clang" LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- ${DEFCONFIG}
+KBUILD_BUILD_TIMESTAMP='' make -C ./linux ARCH=arm64 CC="ccache clang" LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc) ${KERNEL} modules dtbs
+KBUILD_BUILD_TIMESTAMP='' make -C ./linux ARCH=arm64 CC="ccache clang" LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_MOD_PATH=$(pwd)/bootfs MODULES_NO_SYMLINK=true modules_install
 
 rm -rf bootfs
 mkdir -p bootfs
@@ -51,8 +51,8 @@ cp -Rv ramdisk-image/* ${TMPDIR}/
 
 # Busybox
 cp busybox-config ../busybox/.config
-make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- busybox
-make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- CONFIG_PREFIX="$(pwd)/${TMPDIR}" install
+make -C ../busybox CC="ccache aarch64-linux-gnu-gcc" CROSS_COMPILE=aarch64-linux-gnu- busybox
+make -C ../busybox CC="ccache aarch64-linux-gnu-gcc" CROSS_COMPILE=aarch64-linux-gnu- CONFIG_PREFIX="$(pwd)/${TMPDIR}" install
 
 # Compress ramdisk to xz
 cd ${TMPDIR}
