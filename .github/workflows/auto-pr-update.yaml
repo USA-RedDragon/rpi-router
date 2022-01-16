@@ -1,0 +1,17 @@
+name: Auto-update
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  auto-pr-update:
+    name: Auto-update PRs
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: auto-pr-update
+      uses: tibdex/auto-update@v2
+      with:
+        github_token: ${{ secrets.PAT_TOKEN }}

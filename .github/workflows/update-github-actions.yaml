@@ -1,0 +1,49 @@
+name: 'Update GitHub Actions'
+
+on:
+  # Allows you to run this workflow manually from the Actions tab or through HTTP API
+  workflow_dispatch:
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  update-actions:
+    name: 'Update GitHub Actions'
+    runs-on: ubuntu-latest
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+        submodules: true
+
+    - name: Install ghacu
+      run: |
+        mkdir /tmp/ghacu
+        wget -O /tmp/ghacu.tgz https://github.com/fabasoad/ghacu/releases/download/v2.0.4/ghacu-2.0.4-linux-x64.tgz
+        cd /tmp/ghacu
+        tar xf /tmp/ghacu.tgz
+        mv ghacu-*/* .
+        rmdir ghacu-*
+        rm /tmp/ghacu.tgz
+
+    - name: Update Github Actions with ghacu
+      run: |
+        /tmp/ghacu/ghacu update --upgrade --repository "${GITHUB_WORKSPACE}"
+
+    - name: Commit update to actions-updates for PR
+      env:
+        PAT_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      run: |
+        cd ${GITHUB_WORKSPACE}
+        git config --global user.name 'Git Bot'
+        git config --global user.email 'bot@noreply.github.com'
+        git fetch --unshallow
+        git remote set-url origin https://$PAT_TOKEN@github.com/$GITHUB_REPOSITORY
+        git commit -am "Updated GitHub Actions" && git push -f origin HEAD:refs/heads/automerge/actions-updates || echo "No changes to commit"

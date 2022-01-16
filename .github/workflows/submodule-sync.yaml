@@ -1,0 +1,46 @@
+# Adapted from https://stackoverflow.com/questions/64407333/using-github-actions-to-automatically-update-the-repos-submodules
+
+name: 'Submodules sync'
+
+on:
+  # Allows you to run this workflow manually from the Actions tab or through HTTP API
+  workflow_dispatch:
+  # We need to run this periodically as well, because we don't want to fork every upstream in order to 
+  # keep them up to date in my use of them. Once per day should be good enough for release cycle and
+  # security patch purposes
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  sync:
+    name: 'Submodules sync'
+    runs-on: ubuntu-latest
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+        submodules: true
+
+    # Update references
+    - name: Git submodule update
+      run: |
+        git submodule foreach 'git fetch --unshallow'
+        git submodule foreach 'git pull origin $(git config -f $GITHUB_WORKSPACE/.gitmodules --get submodule.$name.branch)'
+
+    - name: Commit update to submodule-updates for PR
+      env:
+        PAT_GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      run: |
+        git config --global user.name 'Git Bot'
+        git config --global user.email 'bot@noreply.github.com'
+        git fetch --unshallow
+        git remote set-url origin https://$PAT_TOKEN@github.com/$GITHUB_REPOSITORY
+        git commit -am "Updated all submodule references" && git push -f origin HEAD:refs/heads/automerge/submodule-updates || echo "No changes to commit"
+
