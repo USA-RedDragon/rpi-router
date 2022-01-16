@@ -1,0 +1,137 @@
+name: 'Build PRs and main'
+
+on:
+  pull_request:
+  push:
+    branches:    
+    - main
+
+jobs:
+  sync:
+    name: 'Build'
+    runs-on: ubuntu-latest
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        submodules: true
+
+    - name: Cache ccache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.ccache
+        key: ${{ runner.os }}-ccache
+
+    - name: Setup build dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y lsb-release wget software-properties-common build-essential python gcc-aarch64-linux-gnu python3 xz-utils libusb-1.0-0-dev ccache
+        python3 -m pip install pycryptodomex
+        ccache -M 2G
+        ccache -F 0
+
+    - name: Install and symlink LLVM tools to sane names
+      env:
+        LLVM_VERSION: 13
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        # no-op is used because this script has a bug
+        # where `llvm.sh: line 40: $2: unbound variable`
+        sudo bash llvm.sh ${LLVM_VERSION} no-op
+        sudo ln -sf $(which ld.lld-${LLVM_VERSION}) /usr/bin/ld.lld
+        sudo ln -sf $(which llvm-objdump-${LLVM_VERSION}) /usr/bin/llvm-objdump
+        sudo ln -sf $(which llvm-objcopy-${LLVM_VERSION}) /usr/bin/llvm-objcopy
+        sudo ln -sf $(which llvm-nm-${LLVM_VERSION}) /usr/bin/llvm-nm
+        sudo ln -sf $(which llvm-ar-${LLVM_VERSION}) /usr/bin/llvm-ar
+        sudo ln -sf $(which llvm-strip-${LLVM_VERSION}) /usr/bin/llvm-strip
+
+    - name: Setup keys on releases
+      if: ${{ github.event_name == 'push' }}
+      env:
+        SECURE_BOOT_PRIVATE_KEY_BASE64: ${{ secrets.SECURE_BOOT_PRIVATE_KEY_BASE64 }}
+        SECURE_BOOT_PUBLIC_KEY_BASE64: ${{ secrets.SECURE_BOOT_PUBLIC_KEY_BASE64 }}
+      run: |
+        echo -n ${SECURE_BOOT_PRIVATE_KEY_BASE64} | base64 -d > secure-boot/keys/private.pem
+        echo -n ${SECURE_BOOT_PUBLIC_KEY_BASE64} | base64 -d > secure-boot/keys/public.pem
+
+    - name: Setup test on PRs
+      if: ${{ github.event_name != 'push' }}
+      run: |
+        cd $GITHUB_WORKSPACE/secure-boot/keys/
+        openssl genrsa 2048 > private.pem
+        openssl rsa -in private.pem -pubout -out public.pem
+
+    - name: Build EEPROM image
+      run: |
+        cd $GITHUB_WORKSPACE/secure-boot/eeprom
+        ./build-eeprom.sh
+
+    - name: Build debug EEPROM image
+      env:
+        DEBUG: 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/secure-boot/eeprom
+        ./build-eeprom.sh
+
+    - name: Build boot image
+      run: |
+        cd $GITHUB_WORKSPACE/boot-image
+        ./create_boot_image.sh
+
+    - name: Build debug boot image
+      env:
+        DEBUG: 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/boot-image
+        ./create_boot_image.sh
+
+    - name: Build system image
+      run: |
+        echo "We're not quite to system images yet. :)"
+
+    - name: Collect artifacts
+      run: |
+        mkdir -p /tmp/artifacts
+        cp $GITHUB_WORKSPACE/secure-boot/eeprom/out.rpiboot/pieeprom.bin /tmp/artifacts/pieeprom.bin
+        cp $GITHUB_WORKSPACE/secure-boot/eeprom/out.rpiboot/pieeprom.sig /tmp/artifacts/pieeprom.sig
+        cp $GITHUB_WORKSPACE/secure-boot/eeprom/out-debug.rpiboot/pieeprom.bin /tmp/artifacts/pieeprom-debug.bin
+        cp $GITHUB_WORKSPACE/secure-boot/eeprom/out-debug.rpiboot/pieeprom.sig /tmp/artifacts/pieeprom-debug.sig
+        cp $GITHUB_WORKSPACE/boot-image/boot.img /tmp/artifacts/boot.img
+        cp $GITHUB_WORKSPACE/boot-image/boot.sig /tmp/artifacts/boot.sig
+        cp $GITHUB_WORKSPACE/boot-image/boot-debug.img /tmp/artifacts/boot-debug.img
+        cp $GITHUB_WORKSPACE/boot-image/boot-debug.sig /tmp/artifacts/boot-debug.sig
+
+    - name: Release artifacts
+      if: ${{ github.event_name == 'push' }}
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: ${{ secrets.PAT_TOKEN }}
+        automatic_release_tag: "#${{ github.run_number }}"
+        title: "Build #${{ github.run_number }}"
+        prerelease: false
+        files: |
+          /tmp/artifacts/pieeprom.bin
+          /tmp/artifacts/pieeprom.sig
+          /tmp/artifacts/pieeprom-debug.bin
+          /tmp/artifacts/pieeprom-debug.sig
+          /tmp/artifacts/boot.img
+          /tmp/artifacts/boot.sig
+          /tmp/artifacts/boot-debug.img
+          /tmp/artifacts/boot-debug.sig
+
+    - name: Create artifacts for test
+      if: ${{ github.event_name != 'push' }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-dist-${GITHUB_SHA}
+        path: |
+          /tmp/artifacts
