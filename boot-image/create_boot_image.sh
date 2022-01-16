@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ -n "$DEBUG" ]; then
     DEBUG=-debug
 fi
@@ -9,8 +11,12 @@ RPIBOOT_PATH="../rpi-usbboot/"
 DEFCONFIG="rpi_cm4_io_router_defconfig"
 KERNEL="Image.gz"
 INITRAMFS="initramfs.xz"
-# TODO: cmdline.txt generation
-CMDLINE="earlycon=pl011,mmio32,0xfe201000 console=ttyS0,115200 root=LABEL=SYSTEM rootfstype=ext4 rootwait"
+
+if [ -n "$DEBUG" ]; then
+    CMDLINE="earlycon=uart8250,mmio32,0xfe215040 8250.nr_uarts=1 console=ttyS0,115200"
+else
+    CMDLINE=""
+fi
 
 # Create and copy kernel
 make -C ./linux ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- ${DEFCONFIG}
@@ -20,46 +26,39 @@ make -C ./linux ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- INST
 rm -rf bootfs
 mkdir -p bootfs
 
+cp -v linux/arch/arm64/boot/${KERNEL} bootfs/
+mkdir -p bootfs/overlays
+cp -v linux/arch/arm64/boot/dts/overlays/*.dtbo bootfs/overlays
+cp -v linux/arch/arm64/boot/dts/overlays/README bootfs/overlays
 cp -v linux/arch/arm64/boot/dts/broadcom/*.dtb* bootfs/
-mkdir -p bootfs/overlays/
-cp -v ../boot-image/firmware/boot/fixup* bootfs/
-cp -v ../boot-image/firmware/boot/start* bootfs/
-cp -v ../boot-image/firmware/boot/LICENSE.broadcom bootfs/
-cp -v ../boot-image/firmware/boot/COPYING.linux bootfs/
-cp -v ../boot-image/firmware/boot/overlays/*.dtb* bootfs/overlays/
-cp -v ../boot-image/firmware/boot/overlays/README bootfs/overlays/
+cp -v firmware/boot/fixup* bootfs/
+cp -v firmware/boot/start* bootfs/
+cp -v firmware/boot/LICENCE.broadcom bootfs/LICENSE.broadcom
+cp -v linux/COPYING bootfs/COPYING.linux
 
 TMPFILE=$(mktemp tmp.XXXXX)
-env KERNEL=${KERNEL} INITRAMFS=${INITRAMFS} CMDLINE="${CMDLINE}" envsubst < bootfs.tpl/config-kernel.txt.tpl > ${TMPFILE}
+env KERNEL=${KERNEL} INITRAMFS=${INITRAMFS} envsubst < bootfs.tpl/config-kernel.txt.tpl > ${TMPFILE}
 echo "${CMDLINE}" > bootfs/cmdline.txt
 cat bootfs.tpl/config${DEBUG}.txt ${TMPFILE} > bootfs/config.txt
 rm -f ${TMPFILE}
 
 # Create and copy ramdisk (secondary bootloader)
-TMPFILE=$(mktemp tmp.XXXXX)
-# Create a 64mb ext4 ramdisk image
-dd if=/dev/zero of=${TMPFILE} bs=1M count=64
-LOOP=$(sudo losetup -f)
-sudo mkfs.ext4 ${TMPFILE}
-sudo losetup -f ${TMPFILE}
-sudo rm -rf ramdisk-mount
-sudo mkdir -p ramdisk-mount
-sudo mount ${LOOP} ramdisk-mount/
+TMPDIR=$(mktemp -d tmp.XXXXX)
 
-# TODO: Place files
-sudo cp -Rv ramdisk-image/* ramdisk-mount/
+# Place files
+mkdir -p ${TMPDIR}/{config,bin,boot,data,dev,run,sys,proc,usr/{bin,lib,sbin},sbin,var,tmp}
+cp -Rv ramdisk-image/* ${TMPDIR}/
+
+# Busybox
 cp busybox-config ../busybox/.config
 make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- busybox
-sudo make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- CONFIG_PREFIX="$(pwd)/ramdisk-mount/" install
-sudo chown -R root:root ramdisk-mount/
-
-sudo umount ramdisk-mount
-sudo rm -rf ramdisk-mount
-sudo losetup -d ${LOOP}
+make -C ../busybox CROSS_COMPILE=aarch64-linux-gnu- CONFIG_PREFIX="$(pwd)/${TMPDIR}" install
 
 # Compress ramdisk to xz
-xz -9 -T0 -e -z -v ${TMPFILE}
-mv ${TMPFILE}.xz bootfs/${INITRAMFS}
+cd ${TMPDIR}
+sudo find . 2>/dev/null | sudo cpio -o -H newc -R root:root | xz -9 -T0 -e --check=crc32 > ../bootfs/${INITRAMFS}
+cd -
+sudo rm -rf ${TMPDIR}
 
 # Create boot image
 sudo ${RPIBOOT_PATH}/tools/make-boot-image -b cm4 -d bootfs/ -o boot${DEBUG}.img
