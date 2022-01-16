@@ -1,0 +1,22 @@
+name: 'Automatic pull request from automerge/ branches'
+
+on:
+  push:
+    branches:
+    - automerge/*
+
+jobs:
+  pr:
+    name: 'Create pull request'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Create PR against main for push to automerge/*
+      uses: vsoch/pull-request-action@1.0.18
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH_PREFIX: "automerge/"
+        PULL_REQUEST_BRANCH: "main"
+        PULL_REQUEST_TITLE: "Automatic automerge update"
+        PASS_IF_EXISTS: true
+        PULL_REQUEST_UPDATE: true
