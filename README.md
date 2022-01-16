@@ -46,7 +46,7 @@ This is a POC, but a predecessor of this appliance has been running in my networ
 
 The `eeprom` is programmed with secure boot and some hardware configuration. The `emmc` contains 3 partitions:
 
-1. Config - A FAT32 filesystem containing persistent data and user configuration. Backups are taken of this partition.
+1. Data - A FAT32 filesystem containing persistent data and user configuration. Backups are taken of this partition.
 2. Boot - A FAT32 filesystem with the `boot.img` and `boot.sig`. They contain the kernel, cmdline, config.txt, the boot binaries, and the secondary bootloader.
 3. System - An EXT4 filesystem with the main system image. System updates are delta diffs of this filesystem.
 

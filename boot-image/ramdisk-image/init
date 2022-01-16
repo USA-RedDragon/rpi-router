@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+echo 'Init Started'
+
+echo 'Mounting /dev'
+mount -t devtmpfs /dev /dev
+
+echo 'Mounting /proc'
+mount -t proc /proc /proc
+
+echo 'Mounting /sys'
+mount -t sysfs /sys /sys
+
+echo 'Mounting /tmp'
+mount -t tmpfs tmpfs /tmp
+
+echo 'Init Done - Dropping to shell'
+exec /bin/sh
