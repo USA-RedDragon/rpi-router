@@ -30,8 +30,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         MERGE_FORKS: 'false'
-        # 5 min sleep between retries
-        MERGE_RETRY_SLEEP: 300000
+        # 1 min sleep between retries + 120 retries = 2hr max build
+        MERGE_RETRIES: 120
+        MERGE_RETRY_SLEEP: 60000
         MERGE_DELETE_BRANCH: 'true'
         MERGE_LABELS: "!wip"
         MERGE_METHOD: rebase
