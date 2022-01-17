@@ -12,6 +12,6 @@ jobs:
 
     steps:
     - name: auto-pr-update
-      uses: tibdex/auto-update@v2
+      uses: tibdex/auto-update@v2.1.3
       with:
         github_token: ${{ secrets.PAT_TOKEN }}
