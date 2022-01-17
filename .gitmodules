@@ -1,3 +1,4 @@
+# CI requires branch to be defined
 [submodule "rpi-usbboot"]
 	path = rpi-usbboot
 	url = https://github.com/raspberrypi/usbboot
