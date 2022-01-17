@@ -21,3 +21,7 @@
 	path = system/packages/llvm
 	url = https://github.com/llvm/llvm-project.git
 	branch = release/13.x
+[submodule "system_packages_binutils"]
+	path = system/packages/binutils
+	url = https://sourceware.org/git/binutils-gdb.git
+	branch = binutils-2_37-branch

@@ -25,6 +25,9 @@ sudo losetup -f ${TMPFILE}
 sudo mount ${LOOP} system-mount/
 
 LFS=$(pwd)/system-mount
+LFS_HOST="x86_64-pc-linux-gnu"
+LFS_TARGET="aarch64-linux-gnu"
+
 
 # Create folder structure
 sudo mkdir -pv $LFS/{etc,var} $LFS/usr/{bin,lib,sbin}
@@ -35,10 +38,13 @@ done
 
 # Special folder for toolchain
 sudo mkdir -pv $LFS/tools
+sudo mkdir -pv $LFS/cross-tools
 
 # Stage 1 - cross toolchain
+# Binutils for gold/LLVMgold.so plugin
+sudo env LFS=${LFS} LFS_HOST=${LFS_HOST} LFS_TARGET=${LFS_TARGET} ./build-scripts/stage1/binutils-gold.sh
 # LLVM
-sudo env LFS=${LFS} ./build-scripts/stage1/llvm.sh
+sudo env LFS=${LFS} LFS_HOST=${LFS_HOST} LFS_TARGET=${LFS_TARGET} ./build-scripts/stage1/llvm.sh
 
 # Unmount image
 sudo umount system-mount
