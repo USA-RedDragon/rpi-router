@@ -33,7 +33,7 @@ jobs:
     - name: Setup build dependencies
       run: |
         sudo apt update
-        sudo apt install -y lsb-release wget software-properties-common build-essential python gcc-aarch64-linux-gnu python3 xz-utils libusb-1.0-0-dev ccache
+        sudo apt install -y cmake ninja-build lsb-release wget software-properties-common build-essential python gcc-aarch64-linux-gnu python3 xz-utils libusb-1.0-0-dev ccache
         python3 -m pip install pycryptodomex
         ccache -M 2G
         ccache -F 0
@@ -96,7 +96,15 @@ jobs:
 
     - name: Build system image
       run: |
-        echo "We're not quite to system images yet. :)"
+        cd $GITHUB_WORKSPACE/system
+        ./create-system-image.sh
+
+    - name: Build debug system image
+      env:
+        DEBUG: 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/system
+        ./create-system-image.sh
 
     - name: Collect artifacts
       run: |
@@ -109,6 +117,8 @@ jobs:
         cp $GITHUB_WORKSPACE/boot-image/boot.sig /tmp/artifacts/boot.sig
         cp $GITHUB_WORKSPACE/boot-image/boot-debug.img /tmp/artifacts/boot-debug.img
         cp $GITHUB_WORKSPACE/boot-image/boot-debug.sig /tmp/artifacts/boot-debug.sig
+        cp $GITHUB_WORKSPACE/system/system.img.xz /tmp/artifacts/system.img.xz
+        cp $GITHUB_WORKSPACE/system/system-debug.img.xz /tmp/artifacts/system-debug.img.xz
 
     - name: Release artifacts
       if: ${{ github.event_name == 'push' }}
@@ -127,6 +137,8 @@ jobs:
           /tmp/artifacts/boot.sig
           /tmp/artifacts/boot-debug.img
           /tmp/artifacts/boot-debug.sig
+          /tmp/artifacts/system.img.xz
+          /tmp/artifacts/system-debug.img.xz
 
     ### Begin Tests
 

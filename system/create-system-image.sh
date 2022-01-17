@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Loosely based on LFS systemd
+
+set -e
+
+if [ -n "$DEBUG" ]; then
+    DEBUG=-debug
+fi
+
+TMPFILE=tmp-system
+
+# Create 2gb raw ext4 image file
+dd if=/dev/zero of=${TMPFILE} bs=1M count=2048
+mkfs.ext4 ${TMPFILE}
+
+# Grab blkid for dm-verity
+SYSTEM_PARTITION_UUID=$(blkid ${TMPFILE} | awk '{ print $2 }' | sed -E 's/UUID="(.*)"/\1/g')
+export MAKEFLAGS="-j$(nproc)"
+
+# Mount ext4 image
+sudo mkdir -p system-mount
+LOOP=$(sudo losetup -f)
+sudo losetup -f ${TMPFILE}
+sudo mount ${LOOP} system-mount/
+
+LFS=$(pwd)/system-mount
+
+# Create folder structure
+sudo mkdir -pv $LFS/{etc,var} $LFS/usr/{bin,lib,sbin}
+
+for i in bin lib sbin; do
+  sudo ln -sv usr/$i $LFS/$i
+done
+
+# Special folder for toolchain
+sudo mkdir -pv $LFS/tools
+
+# Stage 1 - cross toolchain
+# LLVM
+sudo env LFS=${LFS} ./build-scripts/stage1/llvm.sh
+
+# Unmount image
+sudo umount system-mount
+sudo losetup -d ${LOOP}
+
+xz -T0 -e -9 ${TMPFILE}
+mv ${TMPFILE}.xz system${DEBUG}.img.xz
