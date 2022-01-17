@@ -20,13 +20,13 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.4.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         submodules: true
 
     - name: Cache ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v2.1.7
       with:
         path: |
           ~/.ccache
@@ -114,7 +114,7 @@ jobs:
 
     - name: Release artifacts
       if: ${{ github.event_name == 'push' }}
-      uses: marvinpinto/action-automatic-releases@latest
+      uses: marvinpinto/action-automatic-releases@v1.2.1
       with:
         repo_token: ${{ secrets.PAT_TOKEN }}
         automatic_release_tag: "#${{ github.run_number }}"
@@ -132,7 +132,7 @@ jobs:
 
     - name: Create artifacts for test
       if: ${{ github.event_name != 'push' }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2.3.1
       with:
         name: test-dist-${GITHUB_SHA}
         path: |

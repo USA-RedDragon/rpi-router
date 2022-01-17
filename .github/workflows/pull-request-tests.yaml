@@ -20,7 +20,7 @@ jobs:
     steps:
     - name: Checkout
       if: ${{ github.ref_name != 'main' && github.event.workflow_run.conclusion == 'success' }}
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.4.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         submodules: true
@@ -32,7 +32,7 @@ jobs:
 
     - name: Download PR artifacts
       if: ${{ github.ref_name != 'main' && github.event.workflow_run.conclusion == 'success' }}
-      uses: dawidd6/action-download-artifact@v2
+      uses: dawidd6/action-download-artifact@v2.16.0
       with:
         workflow: build.yaml
         name: test-dist-${GITHUB_SHA}
