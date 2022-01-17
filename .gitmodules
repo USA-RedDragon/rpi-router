@@ -16,3 +16,7 @@
 	path = busybox
 	url = https://git.busybox.net/busybox/
 	branch = refs/tags/1_35_0
+[submodule "system_packages_llvm"]
+	path = system/packages/llvm
+	url = https://github.com/llvm/llvm-project.git
+	branch = release/13.x
