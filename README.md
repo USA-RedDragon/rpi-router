@@ -1,4 +1,9 @@
-# RPI-Router OS
+# The Internet Box
+
+## NOTE
+
+This repo is transitioning to <https://github.com/TheInternetBox/core>
+## What is this?
 
 A POC router OS for RPI CM4 + The DFRobot Router Board
 
