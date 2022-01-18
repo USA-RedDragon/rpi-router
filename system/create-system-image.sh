@@ -36,6 +36,10 @@ for i in bin lib lib64 sbin; do
   sudo ln -sv usr/$i $LFS/$i
 done
 
+# Kernel Headers
+DEFCONFIG="rpi_cm4_io_router_defconfig"
+KBUILD_BUILD_TIMESTAMP='' make -C ../boot-image/linux ARCH=arm64 CC="ccache clang" LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- ${DEFCONFIG}
+KBUILD_BUILD_TIMESTAMP='' sudo make -C ../boot-image/linux ARCH=arm64 CC="ccache clang" LLVM=1 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_HDR_PATH=$LFS/usr headers_install
 
 # Stage 1 - cross toolchain
 # Binutils for gold/LLVMgold.so plugin
