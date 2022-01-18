@@ -28,17 +28,14 @@ LFS=$(pwd)/system-mount
 LFS_HOST="x86_64-pc-linux-gnu"
 LFS_TARGET="aarch64-linux-gnu"
 
-
 # Create folder structure
-sudo mkdir -pv $LFS/{etc,var} $LFS/usr/{bin,lib,sbin}
+sudo mkdir -pv $LFS/{etc,var,tmp} $LFS/usr/{bin,lib,sbin}
+sudo ln -sv lib $LFS/usr/lib64
 
-for i in bin lib sbin; do
+for i in bin lib lib64 sbin; do
   sudo ln -sv usr/$i $LFS/$i
 done
 
-# Special folder for toolchain
-sudo mkdir -pv $LFS/tools
-sudo mkdir -pv $LFS/cross-tools
 
 # Stage 1 - cross toolchain
 # Binutils for gold/LLVMgold.so plugin
