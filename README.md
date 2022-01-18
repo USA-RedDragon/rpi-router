@@ -57,6 +57,25 @@ The `eeprom` is programmed with secure boot and some hardware configuration. The
 
 ## Building
 
+### Cloning
+
+Since this project makes significant use of submodules, the clone command is a bit different:
+
+```bash
+git clone --recurse-submodules -j<JOBS> https://github.com/TheInternetBox/core
+```
+
+Note: `-j` is the number of parallel jobs. Adjustment may be needed depending on the hardware at use and the internet bandwidth. `4` is usually a good start.
+
+If the repo has already been cloned, this command should work to trigger submodule checkouts:
+
+```bash
+cd <cloned repo>
+git submodule update --recursive --init
+```
+
+### Building the imges
+
 Note: If you want to build the debuggable version with kernel console via uart on GPIO pins, run `export DEBUG=true` in your shell before running any scripts.
 
 1. The `eeprom` must be programmed. This can be done by building the `eeprom` image like so:
