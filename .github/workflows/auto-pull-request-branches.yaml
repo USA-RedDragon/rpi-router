@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Create PR against main for push to automerge/*
-      uses: vsoch/pull-request-action@1.0.18
+      uses: vsoch/pull-request-action@1.0.19
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         BRANCH_PREFIX: "automerge/"
