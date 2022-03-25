@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - name: Automatically merge pull request
-      uses: pascalgn/automerge-action@v0.14.3
+      uses: pascalgn/automerge-action@v0.15.2
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         MERGE_FORKS: 'false'
